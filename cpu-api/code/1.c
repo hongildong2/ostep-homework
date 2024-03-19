@@ -25,13 +25,19 @@ int main()
         //child process
         x = 1;
 
+        int child_pid = wait(NULL);
+        if (child_pid == -1)
+        {
+            fprintf(stderr, "you don't have a child!\n");
+        }
         long i = 0;
         while (1)
         {
             i++;
             if (i > 1000000000) break;
         }
-        printf("x in the child process : %d\n", x);
+        close(STDOUT_FILENO);
+        printf("x in the child process : %d\n", x); // does not printed due to above close call
     }
     else
     {
@@ -44,5 +50,6 @@ int main()
     char* identity = rc == 0? "child" : "parent";
     printf("i am %s process and x value is %d and random value is %d\n", identity, x, random);
 
+    pipe
     return 0;
 }
