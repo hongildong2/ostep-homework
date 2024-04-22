@@ -40,7 +40,7 @@ void signal_wait(synchronizer_t *s) {
 
 void* worker(void* arg) {
     printf("this should print first\n");
-    signal_done(&s);
+    // signal_done(&s);
     return NULL;
 }
 

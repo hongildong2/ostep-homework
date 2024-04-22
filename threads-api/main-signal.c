@@ -2,10 +2,14 @@
 
 #include "common_threads.h"
 
+#include <unistd.h>
+
 int done = 0;
 
 void* worker(void* arg) {
     printf("this should print first\n");
+
+    sleep(6);
     done = 1;
     return NULL;
 }
