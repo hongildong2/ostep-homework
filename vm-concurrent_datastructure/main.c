@@ -3,8 +3,11 @@
 #include <sys/_types/_timeval.h>
 #include <sys/time.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "concurrent_counter.h"
+#include "concurrent_ll.h"
+#include "scalable_counter.h"
 #include "thpool.h"
 
 static struct timeval s_start_time;
@@ -22,7 +25,8 @@ int main(int argc, char** argv)
     int count;
     sscanf(argv[1], "%d", &count); // danger!
 
-    
+    long number_of_processors = sysconf(_SC_NPROCESSORS_ONLN);
+
     
     job_t* a_jobs = malloc(sizeof(job_t) * count);
     counter_t counter;
@@ -37,7 +41,7 @@ int main(int argc, char** argv)
     counter_init(&counter);
     start_time();
     for (int s = 0; s < count; ++s) {
-        counter_increment(&counter);
+        a_jobs[0].job_func(a_jobs[0].job_args);
     }
     end_time();
     print_time("TESTING SINGLE THREAD COUNTER!");
@@ -50,16 +54,37 @@ int main(int argc, char** argv)
     print_time("TESTING THREADED COUNTER!");
 
 
+    scalable_counter_t scalable_counter;
+    init_lock(&scalable_counter);
+
+    for (int i = 0; i < count; ++i) {
+        a_jobs[i].job_args = &scalable_counter;
+        a_jobs[i].job_func = (void*) update;
+    }
+
+
+    start_time();
+    run_jobs(a_jobs, count);
+    end_time();
+    print_time("TESTING THREADED SCALABLE COUNTER!");
+
+    linked_list_t list;
+    linked_list_init(&list);
+    for (int i = 0; i < count; ++i) {
+        a_jobs[i].job_args = &list;
+        a_jobs[i].job_func = (void*) linked_list_insert;
+    }
+    start_time();
+    run_jobs(a_jobs, count);
+    end_time();
+    print_time("TESTING CONCURRENT LINKED LIST!");
+
+    // hand-over-hand LL
+
 
     return 0;
 }
 
-void test_datastructure(void* (*func)(void*))
-{
-    // open threads
-
-    // send thread "func" to test
-}
 void start_time(void)
 {
     gettimeofday(&s_start_time, NULL);
