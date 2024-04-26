@@ -8,6 +8,7 @@ static int i = 0;
 // for init
 static pthread_mutex_t global_lock = PTHREAD_MUTEX_INITIALIZER; 
 void __init_node(locked_node_t* node);
+int __traverse(hh_list_t* node);
 
 void hh_list_init(hh_list_t* h)
 {
@@ -46,4 +47,23 @@ void __init_node(locked_node_t* node)
 {
     node->key = i++;
     pthread_mutex_init(&node->lock, NULL);
+}
+
+int __traverse(hh_list_t* h)
+{
+    locked_node_t* head = h->head;
+    if (head != NULL && head->next == NULL) {
+        return -1;
+    }
+    head = head->next; //real head
+    
+    int val = 0;
+    while (head != NULL) {
+        pthread_mutex_lock(&head->lock);
+        val = head->key;
+        pthread_mutex_unlock(&head->lock);
+        head = head->next;
+    }
+
+    return val;
 }
